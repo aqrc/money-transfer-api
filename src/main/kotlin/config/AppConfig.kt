@@ -8,9 +8,11 @@ import org.koin.core.context.stopKoin
 import org.koin.core.inject
 import ru.aqrc.project.api.web.Router
 import java.util.*
+import ru.aqrc.project.api.model.database.IDatabaseInitializer
 
 object AppConfig : KoinComponent {
     private val router: Router by inject()
+    private val databaseInitializer: IDatabaseInitializer by inject()
     private lateinit var dbServer: Server
 
     private const val SERVER_PORT_PROPERTY = "server.port"
@@ -24,6 +26,7 @@ object AppConfig : KoinComponent {
                 event.serverStarting {
                     JavalinValidation.register(UUID::class.java, UUID::fromString)
                     dbServer = Server.createWebServer().start()
+                    databaseInitializer.initDatabase()
                 }
                 event.serverStopping {
                     stopKoin()

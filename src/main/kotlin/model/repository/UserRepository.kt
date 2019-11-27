@@ -1,7 +1,6 @@
 package ru.aqrc.project.api.model.repository
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -18,11 +17,6 @@ interface IUserRepository {
 class UserRepository(
     private val dataSource: DataSource
 ) : IUserRepository {
-    init {
-        transaction(Database.connect(dataSource)) {
-            SchemaUtils.create(UsersTable)
-        }
-    }
 
     override fun create(user: User): UUID {
         return transaction(Database.connect(dataSource)) {

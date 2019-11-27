@@ -3,6 +3,8 @@ package ru.aqrc.project.api.config
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.koin.dsl.module
+import ru.aqrc.project.api.model.database.DatabaseInitializer
+import ru.aqrc.project.api.model.database.IDatabaseInitializer
 import ru.aqrc.project.api.model.repository.IUserRepository
 import ru.aqrc.project.api.model.repository.UserRepository
 import ru.aqrc.project.api.service.IUserService
@@ -26,6 +28,7 @@ object ModulesConfig {
                 .apply { this.password = getProperty("db.password") }
                 .let(::HikariDataSource)
         }
+        single<IDatabaseInitializer> { DatabaseInitializer(get()) }
     }
 
     private val userModule = module {

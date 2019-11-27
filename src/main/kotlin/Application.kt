@@ -1,10 +1,9 @@
 package ru.aqrc.project.api
 
-import io.javalin.Javalin
+import ru.aqrc.project.api.config.AppConfig
+import ru.aqrc.project.api.config.KoinConfig
 
 fun main(args: Array<String>) {
-    Javalin
-        .create()
-        .get("/") { ctx -> ctx.result("api is here") }
-        .start(7000)
+    KoinConfig.init()
+    AppConfig.startApplication()
 }

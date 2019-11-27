@@ -1,0 +1,7 @@
+*.class
+.idea/
+out/
+.gradle/
+build/
+**/*/application-custom.yml
+**/*/*private.resources

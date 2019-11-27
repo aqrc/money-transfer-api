@@ -9,6 +9,7 @@ import java.util.*
 interface IUserController {
     fun create(ctx: Context)
     fun get(ctx: Context)
+    fun createAccount(ctx: Context)
 }
 
 class UserController(
@@ -31,6 +32,14 @@ class UserController(
                 user ?: throw NotFoundResponse("User not found")
                 ctx.json(user)
             }
+            .let(ctx::result)
+    }
+
+    override fun createAccount(ctx: Context) {
+        ctx.pathParam("id", UUID::class.java)
+            .get()
+            .let(userService::createAccount)
+            .thenApply { ctx.json(it) }
             .let(ctx::result)
     }
 }

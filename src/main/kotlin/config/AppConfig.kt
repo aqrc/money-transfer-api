@@ -1,7 +1,10 @@
 package ru.aqrc.project.api.config
 
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.Javalin
 import io.javalin.core.validation.JavalinValidation
+import io.javalin.plugin.json.JavalinJackson
 import org.h2.tools.Server
 import org.koin.core.KoinComponent
 import org.koin.core.context.stopKoin
@@ -24,7 +27,8 @@ object AppConfig : KoinComponent {
             .create()
             .events { event ->
                 event.serverStarting {
-                    JavalinValidation.register(UUID::class.java, UUID::fromString)
+                    configureObjectMapper()
+                    configureValidator()
                     dbServer = Server.createWebServer().start()
                     databaseInitializer.initDatabase()
                 }
@@ -38,4 +42,15 @@ object AppConfig : KoinComponent {
             .also { app ->
                 Runtime.getRuntime().addShutdownHook(Thread { app.stop() })
             }
+
+    private fun configureObjectMapper() {
+        JavalinJackson.configure(
+            jacksonObjectMapper()
+                .configure(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN, true)
+        )
+    }
+
+    private fun configureValidator() {
+        JavalinValidation.register(UUID::class.java, UUID::fromString)
+    }
 }

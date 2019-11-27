@@ -15,6 +15,7 @@ class DatabaseInitializer(
     override fun initDatabase() {
         transaction(Database.connect(dataSource)) {
             SchemaUtils.create(UsersTable)
+            SchemaUtils.create(AccountsTable)
         }
     }
 }

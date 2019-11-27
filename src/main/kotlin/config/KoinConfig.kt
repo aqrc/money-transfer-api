@@ -1,6 +1,7 @@
 package ru.aqrc.project.api.config
 
 import org.koin.core.Koin
+import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
@@ -10,6 +11,7 @@ object KoinConfig {
 
     fun init(): Koin = startKoin {
         fileProperties(APP_CONFIGURATION_FILENAME)
+        loadKoinModules(ModulesConfig.apiModules)
         printLogger(
             this.koin
                 .getProperty<String>(LOGGER_LEVEL_PROPERTY)

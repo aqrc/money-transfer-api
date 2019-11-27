@@ -1,10 +1,15 @@
 package ru.aqrc.project.api.web
 
-import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.*
+import ru.aqrc.project.api.web.controller.IUserController
 
-object Router {
-
+class Router(
+    private val userController: IUserController
+) {
     fun endpoints(): () -> Unit = {
-        get("/") { ctx -> ctx.result("api is here") }
+        path("users") {
+            get(":id", userController::get)
+            post(userController::create)
+        }
     }
 }

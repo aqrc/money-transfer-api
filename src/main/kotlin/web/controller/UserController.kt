@@ -19,14 +19,18 @@ class UserController(
             .check({ !it.name.isBlank() })
             .get()
             .let(userService::create)
-            .let { createdUser -> ctx.json(createdUser) }
+            .thenApply { createdUser -> ctx.json(createdUser) }
+            .let(ctx::result)
     }
 
     override fun get(ctx: Context) {
         ctx.pathParam("id", UUID::class.java)
             .get()
             .let(userService::findById)
-            ?.let { ctx.json(it) }
-            ?: throw NotFoundResponse("User not found")
+            .thenApply { user ->
+                user ?: throw NotFoundResponse("User not found")
+                ctx.json(user)
+            }
+            .let(ctx::result)
     }
 }

@@ -5,6 +5,8 @@ import com.zaxxer.hikari.HikariDataSource
 import org.koin.dsl.module
 import ru.aqrc.project.api.model.database.DatabaseInitializer
 import ru.aqrc.project.api.model.database.IDatabaseInitializer
+import ru.aqrc.project.api.model.database.ITransactor
+import ru.aqrc.project.api.model.database.Transactor
 import ru.aqrc.project.api.model.repository.IUserRepository
 import ru.aqrc.project.api.model.repository.UserRepository
 import ru.aqrc.project.api.service.IUserService
@@ -29,6 +31,7 @@ object ModulesConfig {
                 .let(::HikariDataSource)
         }
         single<IDatabaseInitializer> { DatabaseInitializer(get()) }
+        single<ITransactor> { Transactor(get()) }
     }
 
     private val userModule = module {

@@ -13,6 +13,7 @@ interface IUserService {
     fun create(user: User): CompletableFuture<User>
     fun findById(userId: UUID): CompletableFuture<User?>
     fun createAccount(userId: UUID): CompletableFuture<Account>
+    fun getAccounts(userId: UUID): CompletableFuture<List<Account>>
 }
 
 class UserService(
@@ -29,6 +30,10 @@ class UserService(
 
     override fun createAccount(userId: UUID): CompletableFuture<Account> = GlobalScope.future {
         accountRepository.createAccountAsync(userId).await()
+    }
+
+    override fun getAccounts(userId: UUID): CompletableFuture<List<Account>> = GlobalScope.future {
+        accountRepository.findByUserIdAsync(userId).await()
     }
 }
 

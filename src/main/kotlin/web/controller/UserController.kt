@@ -10,6 +10,7 @@ interface IUserController {
     fun create(ctx: Context)
     fun get(ctx: Context)
     fun createAccount(ctx: Context)
+    fun getAccounts(ctx: Context)
 }
 
 class UserController(
@@ -40,6 +41,14 @@ class UserController(
             .get()
             .let(userService::createAccount)
             .thenApply { ctx.json(it) }
+            .let(ctx::result)
+    }
+
+    override fun getAccounts(ctx: Context) {
+        ctx.pathParam("id", UUID::class.java)
+            .get()
+            .let(userService::getAccounts)
+            .thenApply { ctx.json(mapOf("accounts" to it)) }
             .let(ctx::result)
     }
 }

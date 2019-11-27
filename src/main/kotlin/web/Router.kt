@@ -11,6 +11,7 @@ class Router(
     fun endpoints(): () -> Unit = {
         path("users") {
             get(":id", userController::get)
+            get(":id/accounts", userController::getAccounts)
             post(userController::create)
             post(":id/account", userController::createAccount)
         }

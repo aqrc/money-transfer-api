@@ -12,6 +12,7 @@ import java.util.*
 interface IAccountRepository {
     suspend fun createAccountAsync(userId: UUID): Deferred<Account>
     suspend fun findByIdAsync(accountId: UUID): Deferred<Account?>
+    suspend fun findByUserIdAsync(userId: UUID): Deferred<List<Account>>
 }
 
 class AccountRepository(
@@ -43,5 +44,11 @@ class AccountRepository(
             .limit(1)
             .map(AccountsTable::toModel)
             .firstOrNull()
+    }
+
+    override suspend fun findByUserIdAsync(userId: UUID): Deferred<List<Account>> = transactor.suspendedTransaction {
+        AccountsTable
+            .select { AccountsTable.userId eq userId }
+            .map(AccountsTable::toModel)
     }
 }

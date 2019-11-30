@@ -4,7 +4,11 @@ import io.javalin.http.Context
 import io.javalin.http.NotFoundResponse
 import ru.aqrc.project.api.model.User
 import ru.aqrc.project.api.service.IUserService
+import ru.aqrc.project.api.web.controller.extensions.asDTO
+import ru.aqrc.project.api.web.controller.extensions.asModel
+import ru.aqrc.project.api.web.dto.UserDTO
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 interface IUserController {
     fun create(ctx: Context)
@@ -17,11 +21,11 @@ class UserController(
     private val userService: IUserService
 ) : IUserController {
     override fun create(ctx: Context) {
-        ctx.bodyValidator<User>()
+        ctx.bodyValidator<UserDTO>()
             .check({ !it.name.isBlank() })
-            .get()
+            .get().asModel()
             .let(userService::create)
-            .thenApply { createdUser -> ctx.json(createdUser) }
+            .thenApply { createdUser -> ctx.json(createdUser.asDTO()) }
             .let(ctx::result)
     }
 
@@ -31,7 +35,7 @@ class UserController(
             .let(userService::findById)
             .thenApply { user ->
                 user ?: throw NotFoundResponse("User not found")
-                ctx.json(user)
+                ctx.json(user.asDTO())
             }
             .let(ctx::result)
     }

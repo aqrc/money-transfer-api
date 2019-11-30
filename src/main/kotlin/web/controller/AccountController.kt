@@ -3,6 +3,7 @@ package ru.aqrc.project.api.web.controller
 import io.javalin.http.Context
 import io.javalin.http.NotFoundResponse
 import ru.aqrc.project.api.service.IAccountService
+import ru.aqrc.project.api.web.controller.extensions.asDTO
 import java.util.*
 
 interface IAccountController {
@@ -19,7 +20,7 @@ class AccountController(
             .let(accountService::findById)
             .thenApply { account ->
                 account ?: throw NotFoundResponse("Account not found")
-                ctx.json(account)
+                ctx.json(account.asDTO())
             }
             .let(ctx::result)
     }

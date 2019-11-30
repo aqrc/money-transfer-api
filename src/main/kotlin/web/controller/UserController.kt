@@ -44,7 +44,7 @@ class UserController(
         ctx.pathParam("id", UUID::class.java)
             .get()
             .let(userService::createAccount)
-            .thenApply { ctx.json(it) }
+            .thenApply { ctx.json(it.asDTO()) }
             .let(ctx::result)
     }
 
@@ -52,7 +52,12 @@ class UserController(
         ctx.pathParam("id", UUID::class.java)
             .get()
             .let(userService::getAccounts)
-            .thenApply { ctx.json(mapOf("accounts" to it)) }
+            .thenApply { accounts ->
+                accounts
+                    .map { it.asDTO() }
+                    .let { mapOf("accounts" to it) }
+                    .let { ctx.json(it) }
+            }
             .let(ctx::result)
     }
 }

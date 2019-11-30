@@ -33,10 +33,7 @@ class UserController(
         ctx.pathParam("id", UUID::class.java)
             .get()
             .let(userService::findById)
-            .thenApply { user ->
-                user ?: throw NotFoundResponse("User not found")
-                ctx.json(user.asDTO())
-            }
+            .thenApply { user -> ctx.json(user.asDTO()) }
             .let(ctx::result)
     }
 

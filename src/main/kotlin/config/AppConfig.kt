@@ -12,6 +12,7 @@ import org.koin.core.inject
 import ru.aqrc.project.api.web.Router
 import java.util.*
 import ru.aqrc.project.api.model.database.IDatabaseInitializer
+import ru.aqrc.project.api.web.ExceptionMapper
 
 object AppConfig : KoinComponent {
     private val router: Router by inject()
@@ -21,7 +22,6 @@ object AppConfig : KoinComponent {
     private const val SERVER_PORT_PROPERTY = "server.port"
     private const val DEFAULT_PORT = 7000
 
-    // TODO add error mapping
     fun startApplication(): Javalin =
         Javalin
             .create()
@@ -29,19 +29,18 @@ object AppConfig : KoinComponent {
                 event.serverStarting {
                     configureObjectMapper()
                     configureValidator()
-                    dbServer = Server.createWebServer().start()
+                    startDbServer()
                     databaseInitializer.initDatabase()
                 }
                 event.serverStopping {
                     stopKoin()
-                    dbServer.stop()
+                    stopDbServer()
                 }
             }
             .routes(router.endpoints())
-            .start(getKoin().getProperty(SERVER_PORT_PROPERTY, DEFAULT_PORT))
-            .also { app ->
-                Runtime.getRuntime().addShutdownHook(Thread { app.stop() })
-            }
+            .start(getPort())
+            .also(::addShutdownHook)
+            .also(ExceptionMapper::configure)
 
     private fun configureObjectMapper() {
         JavalinJackson.configure(
@@ -52,5 +51,17 @@ object AppConfig : KoinComponent {
 
     private fun configureValidator() {
         JavalinValidation.register(UUID::class.java, UUID::fromString)
+    }
+
+    private fun startDbServer() {
+        dbServer = Server.createWebServer().start()
+    }
+
+    private fun stopDbServer() = dbServer.stop()
+
+    private fun getPort() = getKoin().getProperty(SERVER_PORT_PROPERTY, DEFAULT_PORT)
+
+    private fun addShutdownHook(app: Javalin) {
+        Runtime.getRuntime().addShutdownHook(Thread { app.stop() })
     }
 }

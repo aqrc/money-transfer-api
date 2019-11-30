@@ -5,20 +5,30 @@ import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import io.restassured.response.ValidatableResponse
+import ru.aqrc.project.api.web.dto.AccountDTO
 import ru.aqrc.project.api.web.dto.UserDTO
 
 object RestAssuredFacade {
 
-    fun getUser(userId: String, expectedStatusCode: Int, assert: ValidatableResponse.() -> Unit = {}): UserDTO {
-        return get("/users/$userId", expectedStatusCode, assert) Extract { `as`(UserDTO::class.java) }
+    fun getUser(
+        userId: String,
+        expectedStatusCode: Int,
+        assert: ValidatableResponse.() -> Unit = {}
+    ): UserDTO? {
+        return get("/users/$userId", expectedStatusCode, assert)
+            .let {
+                if (expectedStatusCode == 200)
+                    it.Extract { `as`(UserDTO::class.java) }
+                else null
+            }
     }
 
     fun postUser(
         userBody: UserDTO,
         expectedStatusCode: Int,
-        assertion: ValidatableResponse.() -> Unit = {}
+        assert: ValidatableResponse.() -> Unit = {}
     ): UserDTO {
-        return post("/users", userBody, expectedStatusCode, assertion) Extract { `as`(UserDTO::class.java) }
+        return post("/users", userBody, expectedStatusCode, assert) Extract { `as`(UserDTO::class.java) }
     }
 
 
@@ -38,7 +48,7 @@ object RestAssuredFacade {
         path: String,
         body: T,
         expectedStatusCode: Int,
-        assertion: ValidatableResponse.() -> Unit = {}
+        assert: ValidatableResponse.() -> Unit = {}
     ): ValidatableResponse =
         Given {
             body(body)
@@ -46,7 +56,7 @@ object RestAssuredFacade {
             post(path)
         } Then {
             statusCode(expectedStatusCode)
-            assertion()
+            assert()
         }
-    
+
 }

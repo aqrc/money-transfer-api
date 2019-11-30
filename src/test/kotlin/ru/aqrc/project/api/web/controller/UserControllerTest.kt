@@ -2,8 +2,7 @@ package ru.aqrc.project.api.web.controller
 
 import io.javalin.Javalin
 import io.restassured.RestAssured
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.*
 import org.junit.jupiter.api.*
 import org.koin.core.Koin
 import ru.aqrc.project.api.config.AppConfig
@@ -41,8 +40,8 @@ class UserControllerTest {
     @Test
     fun `should create user and return its id`() {
         postUser(UserDTO(name = USERNAME), 200) {
-            body(USERNAME_PATH, equalTo(USERNAME))
             body(ID_PATH, notNullValue())
+            body(USERNAME_PATH, equalTo(USERNAME))
         }
     }
 
@@ -53,6 +52,14 @@ class UserControllerTest {
         getUser(user.id.toString(), 200) {
             body(ID_PATH, equalTo(user.id.toString()))
             body(USERNAME_PATH, equalTo(USERNAME))
+        }
+    }
+
+    @Test
+    fun `should respond with 404 and message when user not found`() {
+        val unknownUserId = UUID.randomUUID().toString()
+        getUser(unknownUserId, 404) {
+            body("error.message", containsStringIgnoringCase(unknownUserId))
         }
     }
 }

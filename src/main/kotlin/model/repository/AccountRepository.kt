@@ -17,8 +17,9 @@ interface IAccountRepository {
 
 class AccountRepository(
     private val transactor: ITransactor
-): IAccountRepository {
+) : IAccountRepository {
     private companion object {
+
         val BIG_DECIMAL_ZERO: BigDecimal = BigDecimal.valueOf(0, AccountsTable.AMOUNT_SCALE)
     }
 

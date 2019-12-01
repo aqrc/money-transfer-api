@@ -24,7 +24,7 @@ object RestAssuredFacade {
         userBody: UserDTO,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
-    ): UserDTO {
+    ): UserDTO? {
         return post("/users", userBody, expectedStatusCode, assert, UserDTO::class.java)
  }
 
@@ -32,7 +32,7 @@ object RestAssuredFacade {
         userId: String,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
-    ): AccountDTO {
+    ): AccountDTO? {
         return post("/users/$userId/account", null, expectedStatusCode, assert, AccountDTO::class.java)
     }
 
@@ -75,13 +75,13 @@ object RestAssuredFacade {
             else null
         }
 
-    private fun <T> post(
+    private fun <T, S> post(
         path: String,
-        body: T?,
+        body: S?,
         expectedStatusCode: Int,
         assert: ValidatableResponse.() -> Unit = {},
         extractAs: Class<T>
-    ): T =
+    ): T? =
         Given {
             body(body ?: "")
         } When {
@@ -90,7 +90,9 @@ object RestAssuredFacade {
             statusCode(expectedStatusCode)
             assert()
         } Extract {
-            `as`(extractAs)
+            if (expectedStatusCode == 200)
+                `as`(extractAs)
+            else null
         }
 
 }

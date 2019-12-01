@@ -33,8 +33,8 @@ class AccountControllerTest {
 
     @Test
     fun `should get account after creation by its id`() {
-        val user = postUser(UserDTO(name = "random name"))
-        val account = postUserAccount(user.id.toString())
+        val user = postUser(UserDTO(name = "random name"))!!
+        val account = postUserAccount(user.id.toString())!!
 
         getAccount(account.id.toString()) {
             body(ID_PATH, equalTo(account.id.toString()))

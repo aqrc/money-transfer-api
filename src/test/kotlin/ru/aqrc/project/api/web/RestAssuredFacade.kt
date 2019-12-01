@@ -7,6 +7,7 @@ import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import io.restassured.response.ValidatableResponse
 import ru.aqrc.project.api.web.dto.AccountDTO
+import ru.aqrc.project.api.web.dto.MoneyDTO
 import ru.aqrc.project.api.web.dto.UserDTO
 import java.lang.reflect.Type
 
@@ -56,6 +57,24 @@ object RestAssuredFacade {
         assert: ValidatableResponse.() -> Unit = {}
     ): AccountDTO? {
         return get("/accounts/$accountId", expectedStatusCode, assert, AccountDTO::class.java)
+    }
+
+    fun postAccountDeposit(
+        accountId: String,
+        moneyDTO: MoneyDTO,
+        expectedStatusCode: Int = 200,
+        assert: ValidatableResponse.() -> Unit = {}
+    ): AccountDTO? {
+        return post("/accounts/$accountId/deposit", moneyDTO, expectedStatusCode, assert, AccountDTO::class.java)
+    }
+
+    fun postAccountWithdrawal(
+        accountId: String,
+        moneyDTO: MoneyDTO,
+        expectedStatusCode: Int = 200,
+        assert: ValidatableResponse.() -> Unit = {}
+    ): AccountDTO? {
+        return post("/accounts/$accountId/withdrawal", moneyDTO, expectedStatusCode, assert, AccountDTO::class.java)
     }
 
     private fun <T> get(

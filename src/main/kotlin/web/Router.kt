@@ -17,6 +17,8 @@ class Router(
         }
         path("accounts") {
             get(":id", accountController::getAccount)
+            post(":id/deposit", accountController::deposit)
+            post(":id/withdrawal", accountController::withdrawal)
         }
     }
 }

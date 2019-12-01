@@ -5,11 +5,14 @@ import kotlinx.coroutines.future.future
 import ru.aqrc.project.api.model.Account
 import ru.aqrc.project.api.model.repository.IAccountRepository
 import ru.aqrc.project.api.service.exception.EntityNotFoundException
+import ru.aqrc.project.api.web.dto.MoneyDTO
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
 interface IAccountService {
     fun findById(accountId: UUID): CompletableFuture<Account>
+    fun deposit(accountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Account>
+    fun withdrawal(accountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Account>
 }
 
 class AccountService(
@@ -17,6 +20,14 @@ class AccountService(
 ) : IAccountService {
     override fun findById(accountId: UUID): CompletableFuture<Account> = GlobalScope.future {
         accountRepository.findByIdAsync(accountId).await() ?: throwNotFound(accountId)
+    }
+
+    override fun deposit(accountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Account> = GlobalScope.future {
+        return@future accountRepository.increaseAmountAsync(accountId, moneyDTO.amount).await()
+    }
+
+    override fun withdrawal(accountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Account> = GlobalScope.future {
+        return@future accountRepository.decreaseAmountAsync(accountId, moneyDTO.amount).await()
     }
 
     private fun throwNotFound(accountId: UUID): Nothing = throw EntityNotFoundException("Account $accountId not found.")

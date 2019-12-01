@@ -1,19 +1,12 @@
 package ru.aqrc.project.api.web.controller
 
-import io.javalin.Javalin
-import io.restassured.RestAssured
-import io.restassured.config.JsonConfig.jsonConfig
-import io.restassured.config.RestAssuredConfig
-import io.restassured.path.json.config.JsonPathConfig
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.koin.core.Koin
-import ru.aqrc.project.api.config.AppConfig
-import ru.aqrc.project.api.config.KoinConfig
+import ru.aqrc.project.api.web.ApiInstance
 import ru.aqrc.project.api.web.RestAssuredFacade.getUser
 import ru.aqrc.project.api.web.RestAssuredFacade.getUserAccounts
 import ru.aqrc.project.api.web.RestAssuredFacade.postUser
@@ -25,8 +18,6 @@ import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserControllerTest {
-    private lateinit var api: Javalin
-    private lateinit var koin: Koin
 
     private companion object {
         const val ID_PATH = "id"
@@ -39,22 +30,12 @@ class UserControllerTest {
 
     @BeforeAll
     fun startApi() {
-        koin = KoinConfig.init()
-        api = AppConfig.startApplication()
-
-        RestAssured.port = api.port()
-        RestAssured.config = RestAssuredConfig
-            .config()
-            .jsonConfig(
-                jsonConfig()
-                    .numberReturnType(JsonPathConfig.NumberReturnType.BIG_DECIMAL)
-            )
+        ApiInstance.startApi()
     }
 
     @AfterAll
     fun stopApi() {
-        api.stop()
-        koin.close()
+        ApiInstance.stopApi()
     }
 
     @Test

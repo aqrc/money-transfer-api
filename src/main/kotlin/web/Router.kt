@@ -19,6 +19,7 @@ class Router(
             get(":id", accountController::getAccount)
             post(":id/deposit", accountController::deposit)
             post(":id/withdrawal", accountController::withdrawal)
+            post(":fromId/transfer/:toId", accountController::transfer)
         }
     }
 }

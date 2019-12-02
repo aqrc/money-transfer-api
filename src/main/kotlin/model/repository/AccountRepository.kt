@@ -1,6 +1,7 @@
 package ru.aqrc.project.api.model.repository
 
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.awaitAll
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.update
@@ -14,17 +15,17 @@ import java.util.*
 
 interface IAccountRepository {
     suspend fun createAccountAsync(userId: UUID): Deferred<Account>
-    suspend fun findByIdAsync(accountId: UUID): Deferred<Account?>
+    suspend fun findByIdAsync(accountId: UUID): Deferred<Account>
     suspend fun findByUserIdAsync(userId: UUID): Deferred<List<Account>>
     suspend fun increaseAmountAsync(accountId: UUID, diff: BigDecimal): Deferred<Account>
     suspend fun decreaseAmountAsync(accountId: UUID, diff: BigDecimal): Deferred<Account>
+    suspend fun transferAsync(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal): Deferred<Account>
 }
 
 class AccountRepository(
     private val transactor: ITransactor
 ) : IAccountRepository {
     private companion object {
-
         val BIG_DECIMAL_ZERO: BigDecimal = BigDecimal.valueOf(0, AccountsTable.AMOUNT_SCALE)
     }
 
@@ -44,12 +45,13 @@ class AccountRepository(
             }
     }
 
-    override suspend fun findByIdAsync(accountId: UUID): Deferred<Account?> = transactor.suspendedTransaction {
+    override suspend fun findByIdAsync(accountId: UUID): Deferred<Account> = transactor.suspendedTransaction {
         AccountsTable
             .select { AccountsTable.id eq accountId }
             .limit(1)
             .map(AccountsTable::toModel)
             .firstOrNull()
+            ?: throwNotFound(accountId)
     }
 
     override suspend fun findByUserIdAsync(userId: UUID): Deferred<List<Account>> = transactor.suspendedTransaction {
@@ -76,11 +78,7 @@ class AccountRepository(
     }
 
     override suspend fun decreaseAmountAsync(accountId: UUID, diff: BigDecimal) = transactor.suspendedTransaction {
-        val account = AccountsTable
-            .select { AccountsTable.id eq accountId }
-            .map(AccountsTable::toModel)
-            .firstOrNull()
-            ?: throwNotFound(accountId)
+        val account = findByIdAsync(accountId).await()
 
         val newAmount = account.amount.subtract(diff)
             .takeIf { it >= BigDecimal.ZERO }
@@ -92,6 +90,33 @@ class AccountRepository(
             }
 
         account.copy(amount = newAmount)
+    }
+
+    override suspend fun transferAsync(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal) = transactor.suspendedTransaction {
+        val accounts = awaitAll(
+            findByIdAsync(fromAccountId),
+            findByIdAsync(toAccountId)
+        )
+
+        val fromAccount = accounts[0]
+        val toAccount = accounts[1]
+        val newAmountFromAccount = fromAccount.amount.subtract(diff)
+            .takeIf { it >= BigDecimal.ZERO }
+            ?: throwNotEnoughMoneyOnBalance(fromAccountId, diff)
+
+        val newAmountToAccount = toAccount.amount.add(diff)
+
+        AccountsTable
+            .update(where = { AccountsTable.id eq fromAccountId }) {
+                it[amount] = newAmountFromAccount
+            }
+
+        AccountsTable
+            .update(where = { AccountsTable.id eq toAccountId }) {
+                it[amount] = newAmountToAccount
+            }
+
+        fromAccount.copy(amount = newAmountFromAccount)
     }
 
     private fun throwNotFound(accountId: UUID): Nothing = throw EntityNotFoundException("Account $accountId not found.")

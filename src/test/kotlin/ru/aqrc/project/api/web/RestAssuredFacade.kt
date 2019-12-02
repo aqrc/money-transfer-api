@@ -77,6 +77,16 @@ object RestAssuredFacade {
         return post("/accounts/$accountId/withdrawal", moneyDTO, expectedStatusCode, assert, AccountDTO::class.java)
     }
 
+    fun postTransfer(
+        fromAccountId: String,
+        toAccountId: String,
+        moneyDTO: MoneyDTO,
+        expectedStatusCode: Int = 200,
+        assert: ValidatableResponse.() -> Unit = {}
+    ): AccountDTO? {
+        return post("/accounts/$fromAccountId/transfer/$toAccountId", moneyDTO, expectedStatusCode, assert, AccountDTO::class.java)
+    }
+
     private fun <T> get(
         path: String,
         expectedStatusCode: Int,

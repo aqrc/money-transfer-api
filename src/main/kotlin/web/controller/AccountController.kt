@@ -13,6 +13,7 @@ interface IAccountController {
     fun getAccount(ctx: Context)
     fun deposit(ctx: Context)
     fun withdrawal(ctx: Context)
+    fun transfer(ctx: Context)
 }
 
 class AccountController(
@@ -40,7 +41,16 @@ class AccountController(
             .let(this::result)
     }
 
-    private fun Context.getValidatedAccountId(): UUID = this.pathParam("id", UUID::class.java).get()
+    override fun transfer(ctx: Context) {
+        val fromAccountId = ctx.getValidatedAccountId("fromId")
+        val toAccountId = ctx.getValidatedAccountId("toId")
+        ctx.getValidatedMoneyDTO()
+            .let { money -> accountService.transfer(fromAccountId, toAccountId, money) }
+            .thenApply { account -> ctx.json(account.asDTO()) }
+            .let(ctx::result)
+    }
+
+    private fun Context.getValidatedAccountId(idPath: String = "id"): UUID = this.pathParam(idPath, UUID::class.java).get()
 
     private fun Context.getValidatedMoneyDTO(): MoneyDTO {
         return this.bodyValidator<MoneyDTO>()

@@ -12,7 +12,7 @@ interface IAccountService {
     fun findById(accountId: UUID): CompletableFuture<Account>
     fun deposit(accountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Account>
     fun withdrawal(accountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Account>
-    fun transfer(fromAccountId: UUID, toAccountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Account>
+    fun transfer(fromAccountId: UUID, toAccountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Unit>
 }
 
 class AccountService(

@@ -1,5 +1,6 @@
 package ru.aqrc.project.api.model.repository
 
+import com.sun.javafx.binding.StringFormatter
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.awaitAll
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -19,7 +20,7 @@ interface IAccountRepository {
     suspend fun findByUserIdAsync(userId: UUID): Deferred<List<Account>>
     suspend fun increaseAmountAsync(accountId: UUID, diff: BigDecimal): Deferred<Account>
     suspend fun decreaseAmountAsync(accountId: UUID, diff: BigDecimal): Deferred<Account>
-    suspend fun transferAsync(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal): Deferred<Account>
+    suspend fun transferAsync(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal): Deferred<Unit>
 }
 
 class AccountRepository(
@@ -92,35 +93,75 @@ class AccountRepository(
         account.copy(amount = newAmount)
     }
 
-    override suspend fun transferAsync(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal) = transactor.suspendedTransaction {
-        val accounts = awaitAll(
-            findByIdAsync(fromAccountId),
-            findByIdAsync(toAccountId)
-        )
+    override suspend fun transferAsync(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal): Deferred<Unit> {
+        return transactor.suspendedTransaction {
+            val accountsExist = awaitAll(
+                findByIdAsync(fromAccountId),
+                findByIdAsync(toAccountId)
+            )
 
-        val fromAccount = accounts[0]
-        val toAccount = accounts[1]
-        val newAmountFromAccount = fromAccount.amount.subtract(diff)
-            .takeIf { it >= BigDecimal.ZERO }
-            ?: throwNotEnoughMoneyOnBalance(fromAccountId, diff)
+            accountsExist[0]
+                .takeIf { fromAccount -> fromAccount.amount.subtract(diff) >= BigDecimal.ZERO }
+                ?: throwNotEnoughMoneyOnBalance(fromAccountId, diff)
 
-        val newAmountToAccount = toAccount.amount.add(diff)
-
-        AccountsTable
-            .update(where = { AccountsTable.id eq fromAccountId }) {
-                it[amount] = newAmountFromAccount
-            }
-
-        AccountsTable
-            .update(where = { AccountsTable.id eq toAccountId }) {
-                it[amount] = newAmountToAccount
-            }
-
-        fromAccount.copy(amount = newAmountFromAccount)
+            this.exec(MoneyTransferSqlUtil.buildQuery(fromAccountId, toAccountId, diff)) ?: Unit
+        }
     }
 
     private fun throwNotFound(accountId: UUID): Nothing = throw EntityNotFoundException("Account $accountId not found.")
 
     private fun throwNotEnoughMoneyOnBalance(accountId: UUID, diff: BigDecimal): Nothing =
         throw NotEnoughMoneyOnBalance("Account $accountId doesn't have $diff on balance.")
+
+    private object MoneyTransferSqlUtil {
+        fun buildQuery(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal): String {
+            return StringFormatter.format(
+                query,
+                diff.toPlainString(),
+                fromAccountId.toString(),
+                diff.toPlainString(),
+                toAccountId.toString()
+            ).value
+        }
+
+        private const val ID_COLUMN = "ID"
+
+        // Didn't find a better concurrency resistant solution
+        private const val query = "WITH " +
+                "SENDER_ACCOUNT AS (" +
+                "   SELECT $ID_COLUMN, " +
+                "   ${AccountsTable.USER_ID_COLUMN}, " +
+                "   ${AccountsTable.AMOUNT_COLUMN}, " +
+                "   ${AccountsTable.AMOUNT_COLUMN} - %s AS NEW_AMOUNT " +
+                "   FROM ACCOUNTS " +
+                "   WHERE $ID_COLUMN = '%s' FOR UPDATE " +
+                "), " +
+                "RECEIVER_ACCOUNT AS (" +
+                "   SELECT $ID_COLUMN, " +
+                "   ${AccountsTable.USER_ID_COLUMN}, " +
+                "   ${AccountsTable.AMOUNT_COLUMN}, " +
+                "   ${AccountsTable.AMOUNT_COLUMN} + %s AS NEW_AMOUNT " +
+                "   FROM ACCOUNTS " +
+                "   WHERE $ID_COLUMN = '%s' FOR UPDATE " +
+                ") " +
+                "MERGE INTO ACCOUNTS KEY(ID) VALUES " +
+                "( " +
+                "   (select $ID_COLUMN from RECEIVER_ACCOUNT), " +
+                "   (select ${AccountsTable.USER_ID_COLUMN} from RECEIVER_ACCOUNT), " +
+                "   SELECT CASE " +
+                "   WHEN (SELECT NEW_AMOUNT FROM SENDER_ACCOUNT >= 0) " +
+                "   THEN (SELECT NEW_AMOUNT FROM RECEIVER_ACCOUNT) " +
+                "   ELSE (SELECT ${AccountsTable.AMOUNT_COLUMN} FROM RECEIVER_ACCOUNT) " +
+                "   END FOR UPDATE " +
+                "), " +
+                "( " +
+                "   (select $ID_COLUMN from SENDER_ACCOUNT), " +
+                "   (select ${AccountsTable.USER_ID_COLUMN} from SENDER_ACCOUNT), " +
+                "   SELECT CASE " +
+                "   WHEN (SELECT NEW_AMOUNT FROM SENDER_ACCOUNT >= 0) " +
+                "   THEN (SELECT NEW_AMOUNT FROM SENDER_ACCOUNT) " +
+                "   ELSE (SELECT ${AccountsTable.AMOUNT_COLUMN} FROM SENDER_ACCOUNT) " +
+                "   END FOR UPDATE " +
+                ")"
+    }
 }

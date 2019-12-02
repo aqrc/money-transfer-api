@@ -7,7 +7,7 @@ import ru.aqrc.project.api.model.Account
 import ru.aqrc.project.api.model.User
 
 object UsersTable : UUIDTable() {
-    private const val NAME_COLUMN = "name"
+    private const val NAME_COLUMN = "NAME"
 
     val name: Column<String> = varchar(NAME_COLUMN, 100)
 
@@ -20,8 +20,8 @@ object UsersTable : UUIDTable() {
 }
 
 object AccountsTable : UUIDTable() {
-    private const val USER_ID_COLUMN = "userId"
-    private const val AMOUNT_COLUMN = "amount"
+    const val USER_ID_COLUMN = "USER_ID"
+    const val AMOUNT_COLUMN = "AMOUNT"
     private const val AMOUNT_PRECISION = 38
     const val AMOUNT_SCALE = 8
 

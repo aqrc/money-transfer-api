@@ -1,5 +1,6 @@
 package ru.aqrc.project.api.web.controller
 
+import kotlinx.coroutines.*
 import org.hamcrest.CoreMatchers.containsStringIgnoringCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.jupiter.api.*
@@ -98,7 +99,9 @@ class AccountControllerTransferTest {
             body(AMOUNT_PATH, equalTo(deposit.amount))
         }
 
-        postTransfer(fromAccount.id.toString(), toAccount.id.toString(), deposit) {
+        postTransfer(fromAccount.id.toString(), toAccount.id.toString(), deposit)
+
+        getAccount(fromAccount.id.toString()) {
             body(ID_PATH, equalTo(fromAccount.id.toString()))
             body(USER_ID_PATH, equalTo(fromUser.id.toString()))
             body(AMOUNT_PATH, equalTo(BigDecimal.valueOf(0, 8)))

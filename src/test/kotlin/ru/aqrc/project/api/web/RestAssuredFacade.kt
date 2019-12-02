@@ -10,6 +10,7 @@ import ru.aqrc.project.api.web.dto.AccountDTO
 import ru.aqrc.project.api.web.dto.MoneyDTO
 import ru.aqrc.project.api.web.dto.UserDTO
 import java.lang.reflect.Type
+import java.util.*
 
 object RestAssuredFacade {
 
@@ -83,8 +84,8 @@ object RestAssuredFacade {
         moneyDTO: MoneyDTO,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
-    ): AccountDTO? {
-        return post("/accounts/$fromAccountId/transfer/$toAccountId", moneyDTO, expectedStatusCode, assert, AccountDTO::class.java)
+    ): Unit? {
+        return post("/accounts/$fromAccountId/transfer/$toAccountId", moneyDTO, expectedStatusCode, assert, null)
     }
 
     private fun <T> get(
@@ -109,7 +110,7 @@ object RestAssuredFacade {
         body: S?,
         expectedStatusCode: Int,
         assert: ValidatableResponse.() -> Unit = {},
-        extractAs: Class<T>
+        extractAs: Class<T>?
     ): T? =
         Given {
             body(body ?: "")
@@ -119,7 +120,7 @@ object RestAssuredFacade {
             statusCode(expectedStatusCode)
             assert()
         } Extract {
-            if (expectedStatusCode == 200)
+            if (expectedStatusCode == 200 && extractAs != null)
                 `as`(extractAs)
             else null
         }

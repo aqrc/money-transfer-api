@@ -34,6 +34,7 @@ object ModulesConfig {
                 .apply { this.jdbcUrl = getProperty("db.jdbc.url") }
                 .apply { this.username = getProperty("db.username") }
                 .apply { this.password = getProperty("db.password") }
+                .apply { this.maximumPoolSize = 6 }
                 .let(::HikariDataSource)
         }
         single<IDatabaseInitializer> { DatabaseInitializer(get()) }

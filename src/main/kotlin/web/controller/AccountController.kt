@@ -46,8 +46,7 @@ class AccountController(
         val toAccountId = ctx.getValidatedAccountId("toId")
         ctx.getValidatedMoneyDTO()
             .let { money -> accountService.transfer(fromAccountId, toAccountId, money) }
-            .thenApply { account -> ctx.json(account.asDTO()) }
-            .let(ctx::result)
+            .let(ctx::json)
     }
 
     private fun Context.getValidatedAccountId(idPath: String = "id"): UUID = this.pathParam(idPath, UUID::class.java).get()

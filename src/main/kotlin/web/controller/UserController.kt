@@ -1,6 +1,8 @@
 package ru.aqrc.project.api.web.controller
 
 import io.javalin.http.Context
+import ru.aqrc.project.api.model.Account
+import ru.aqrc.project.api.model.User
 import ru.aqrc.project.api.service.IUserService
 import ru.aqrc.project.api.web.controller.extensions.asDTO
 import ru.aqrc.project.api.web.controller.extensions.asModel
@@ -20,22 +22,22 @@ class UserController(
     override fun createUser(ctx: Context) {
         ctx.getValidatedUserDTO().asModel()
             .let(userService::create)
-            .thenApply { createdUser -> ctx.json(createdUser.asDTO()) }
-            .let(ctx::result)
+            .thenApply(User::asDTO)
+            .let(ctx::json)
     }
 
     override fun getUser(ctx: Context) {
         ctx.getValidatedUserId()
             .let(userService::findById)
-            .thenApply { user -> ctx.json(user.asDTO()) }
-            .let(ctx::result)
+            .thenApply(User::asDTO)
+            .let(ctx::json)
     }
 
     override fun createAccount(ctx: Context) {
         ctx.getValidatedUserId()
             .let(userService::createAccount)
-            .thenApply { ctx.json(it.asDTO()) }
-            .let(ctx::result)
+            .thenApply(Account::asDTO)
+            .let(ctx::json)
     }
 
     override fun getAccounts(ctx: Context) {
@@ -43,11 +45,10 @@ class UserController(
             .let(userService::getAccounts)
             .thenApply { accounts ->
                 accounts
-                    .map { it.asDTO() }
+                    .map(Account::asDTO)
                     .let { mapOf("accounts" to it) }
-                    .let { ctx.json(it) }
             }
-            .let(ctx::result)
+            .let(ctx::json)
     }
 
     private fun Context.getValidatedUserId(): UUID = this.pathParam("id", UUID::class.java).get()

@@ -20,14 +20,6 @@ fun User.asDTO(): UserDTO {
     )
 }
 
-fun AccountDTO.asModel(): Account {
-    return Account(
-        id = this.id,
-        userId = this.userId,
-        amount = this.amount
-    )
-}
-
 fun Account.asDTO(): AccountDTO {
     return AccountDTO(
         id = this.id,

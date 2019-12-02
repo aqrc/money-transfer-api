@@ -24,7 +24,9 @@ object AppConfig : KoinComponent {
 
     fun startApplication(): Javalin =
         Javalin
-            .create()
+            .create { config ->
+                config.asyncRequestTimeout = 30000
+            }
             .events { event ->
                 event.serverStarting {
                     configureObjectMapper()

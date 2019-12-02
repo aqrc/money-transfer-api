@@ -26,8 +26,8 @@ class AccountController(
     override fun getAccount(ctx: Context) {
         ctx.getValidatedAccountId()
             .let(accountService::findById)
-            .thenApply { account -> ctx.json(account.asDTO()) }
-            .let(ctx::result)
+            .thenApply(Account::asDTO)
+            .let(ctx::json)
     }
 
     override fun deposit(ctx: Context) = ctx.handleMoneyOperation(accountService::deposit)
@@ -37,8 +37,8 @@ class AccountController(
     private fun Context.handleMoneyOperation(operation: (UUID, MoneyDTO) -> CompletableFuture<Account>) {
         val accountId = this.getValidatedAccountId()
         operation(accountId, this.getValidatedMoneyDTO())
-            .thenApply { account -> this.json(account.asDTO()) }
-            .let(this::result)
+            .thenApply(Account::asDTO)
+            .let(this::json)
     }
 
     override fun transfer(ctx: Context) {

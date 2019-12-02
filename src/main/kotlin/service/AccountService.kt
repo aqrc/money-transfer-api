@@ -30,7 +30,7 @@ class AccountService(
         accountRepository.decreaseAmountAsync(accountId, moneyDTO.amount).await()
     }
 
-    override fun transfer(fromAccountId: UUID, toAccountId: UUID, moneyDTO: MoneyDTO) = GlobalScope.future {
+    override fun transfer(fromAccountId: UUID, toAccountId: UUID, moneyDTO: MoneyDTO): CompletableFuture<Unit> = GlobalScope.future {
         accountRepository.transferAsync(fromAccountId, toAccountId, moneyDTO.amount).await()
     }
 }

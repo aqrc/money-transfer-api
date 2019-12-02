@@ -9,6 +9,11 @@ repositories {
     jcenter()
 }
 
+jar {
+    manifest { attributes('Main-Class': 'ru.aqrc.project.api.ApplicationKt') }
+    from { configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) } }
+}
+
 ext {
     exposed_version = "0.18.1"
     h2_version = "1.4.200"

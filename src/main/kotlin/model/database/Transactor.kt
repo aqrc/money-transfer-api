@@ -11,8 +11,15 @@ interface ITransactor {
 }
 
 class Transactor(
-    private val dataSource: DataSource
+    dataSource: DataSource
 ) : ITransactor {
-    override suspend fun <T> suspendedTransaction(block: suspend Transaction.() -> T): Deferred<T> =
-        suspendedTransactionAsync(db = Database.connect(dataSource), statement = block)
+    private var defaultDb: Database? = null
+
+    init {
+        defaultDb = Database.connect(dataSource)
+    }
+
+    override suspend fun <T> suspendedTransaction(block: suspend Transaction.() -> T): Deferred<T> {
+        return suspendedTransactionAsync(db = defaultDb, statement = block)
+    }
 }

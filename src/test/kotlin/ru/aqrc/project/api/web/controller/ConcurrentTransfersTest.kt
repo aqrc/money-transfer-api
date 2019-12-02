@@ -40,10 +40,10 @@ class ConcurrentTransfersTest {
     @BeforeEach
     fun setUp() {
         fromUser = postUser(UserDTO(name = "User From"))!!
-        fromAccount = postUserAccount(fromUser.id.toString())!!
+        fromAccount = postUserAccount(fromUser.id!!)!!
 
         toUser = postUser(UserDTO(name = "User To"))!!
-        toAccount = postUserAccount(toUser.id.toString())!!
+        toAccount = postUserAccount(toUser.id!!)!!
     }
 
     @Test
@@ -52,7 +52,7 @@ class ConcurrentTransfersTest {
         val depositPart = 500L
 
         val deposit = MoneyDTO(amount = BigDecimal.valueOf(depositPart * concurrency, 8))
-        postAccountDeposit(fromAccount.id.toString(), deposit) {
+        postAccountDeposit(fromAccount.id, deposit) {
             body(AMOUNT_PATH, equalTo(deposit.amount))
         }
 
@@ -61,7 +61,7 @@ class ConcurrentTransfersTest {
         for (i in 1..concurrency) {
             transfers.add(
                 GlobalScope.async(start = CoroutineStart.LAZY) {
-                    postTransfer(fromAccount.id.toString(), toAccount.id.toString(), smallMoney)
+                    postTransfer(fromAccount.id, toAccount.id, smallMoney)
                         .also { println("$i finished") }
                 }
             )
@@ -71,13 +71,13 @@ class ConcurrentTransfersTest {
             transfers.awaitAll()
         }
 
-        getAccount(fromAccount.id.toString()) {
+        getAccount(fromAccount.id) {
             body(ID_PATH, equalTo(fromAccount.id.toString()))
             body(USER_ID_PATH, equalTo(fromUser.id.toString()))
             body(AMOUNT_PATH, equalTo(BigDecimal.valueOf(0, 8)))
         }
 
-        getAccount(toAccount.id.toString()) {
+        getAccount(toAccount.id) {
             body(ID_PATH, equalTo(toAccount.id.toString()))
             body(USER_ID_PATH, equalTo(toUser.id.toString()))
             body(AMOUNT_PATH, equalTo(deposit.amount))

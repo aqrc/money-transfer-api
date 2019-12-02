@@ -39,12 +39,12 @@ class AccountControllerTest {
     @BeforeEach
     fun setUp() {
         user = postUser(UserDTO(name = "random name"))!!
-        account = postUserAccount(user.id.toString())!!
+        account = postUserAccount(user.id!!)!!
     }
 
     @Test
     fun `should get account after creation by its id`() {
-        getAccount(account.id.toString()) {
+        getAccount(account.id) {
             body(ID_PATH, equalTo(account.id.toString()))
             body(USER_ID_PATH, equalTo(user.id.toString()))
             body(AMOUNT_PATH, equalTo(BigDecimal.valueOf(0, 8)))
@@ -54,7 +54,7 @@ class AccountControllerTest {
     @Test
     fun `should deposit money on account`() {
         val deposit = MoneyDTO(amount = BigDecimal.valueOf(1_50000000, 8))
-        postAccountDeposit(account.id.toString(), deposit) {
+        postAccountDeposit(account.id, deposit) {
             body(ID_PATH, equalTo(account.id.toString()))
             body(USER_ID_PATH, equalTo(user.id.toString()))
             body(AMOUNT_PATH, equalTo(deposit.amount))
@@ -64,17 +64,17 @@ class AccountControllerTest {
     @Test
     fun `should withdrawal money from account`() {
         val deposit = MoneyDTO(amount = BigDecimal.valueOf(1_50000000, 8))
-        postAccountDeposit(account.id.toString(), deposit)
+        postAccountDeposit(account.id, deposit)
 
         val firstWithdrawal = MoneyDTO(amount = BigDecimal.valueOf(90000000, 8))
-        postAccountWithdrawal(account.id.toString(), firstWithdrawal) {
+        postAccountWithdrawal(account.id, firstWithdrawal) {
             body(ID_PATH, equalTo(account.id.toString()))
             body(USER_ID_PATH, equalTo(user.id.toString()))
             body(AMOUNT_PATH, equalTo(BigDecimal.valueOf(60000000, 8)))
         }
 
         val secondWithdrawal = MoneyDTO(amount = BigDecimal.valueOf(60000000, 8))
-        postAccountWithdrawal(account.id.toString(), secondWithdrawal ) {
+        postAccountWithdrawal(account.id, secondWithdrawal ) {
             body(ID_PATH, equalTo(account.id.toString()))
             body(USER_ID_PATH, equalTo(user.id.toString()))
             body(AMOUNT_PATH, equalTo(BigDecimal.valueOf(0, 8)))
@@ -84,7 +84,7 @@ class AccountControllerTest {
     @Test
     fun `should respond with 400 and message on withdrawal when there are not enough money on account`() {
         val withdrawal = MoneyDTO(amount = BigDecimal.valueOf(1, 8))
-        postAccountWithdrawal(account.id.toString(), withdrawal, 400) {
+        postAccountWithdrawal(account.id, withdrawal, 400) {
             body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(account.id.toString()))
         }
     }
@@ -92,7 +92,7 @@ class AccountControllerTest {
     @Test
     fun `should respond with 400 and message on withdrawal when body has not positive amount`() {
         val assert400WithErrorOnWithdrawal = { money: MoneyDTO ->
-            postAccountWithdrawal(account.id.toString(), money, 400) {
+            postAccountWithdrawal(account.id, money, 400) {
                 body(ERROR_MESSAGE_PATH, notNullValue())
             }
         }
@@ -107,7 +107,7 @@ class AccountControllerTest {
     @Test
     fun `should respond with 400 and message on deposit when body has not positive amount`() {
         val assert400WithErrorOnDeposit = { money: MoneyDTO ->
-            postAccountDeposit(account.id.toString(), money, 400) {
+            postAccountDeposit(account.id, money, 400) {
                 body(ERROR_MESSAGE_PATH, notNullValue())
             }
         }
@@ -124,7 +124,7 @@ class AccountControllerTest {
         val unknownAccountId = UUID.randomUUID()
         val deposit = MoneyDTO(amount = BigDecimal.valueOf(1_50000000, 8))
 
-        postAccountDeposit(unknownAccountId.toString(), deposit, 404) {
+        postAccountDeposit(unknownAccountId, deposit, 404) {
             body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownAccountId.toString()))
         }
     }
@@ -134,7 +134,7 @@ class AccountControllerTest {
         val unknownAccountId = UUID.randomUUID()
         val withdrawal = MoneyDTO(amount = BigDecimal.valueOf(1_50000000, 8))
 
-        postAccountWithdrawal(unknownAccountId.toString(), withdrawal, 404) {
+        postAccountWithdrawal(unknownAccountId, withdrawal, 404) {
             body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownAccountId.toString()))
         }
     }

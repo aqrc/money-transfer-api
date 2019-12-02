@@ -15,7 +15,7 @@ import java.util.*
 object RestAssuredFacade {
 
     fun getUser(
-        userId: String,
+        userId: UUID,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
     ): UserDTO? {
@@ -31,7 +31,7 @@ object RestAssuredFacade {
  }
 
     fun postUserAccount(
-        userId: String,
+        userId: UUID,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
     ): AccountDTO? {
@@ -39,7 +39,7 @@ object RestAssuredFacade {
     }
 
     fun getUserAccounts(
-        userId: String,
+        userId: UUID,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
     ): Map<String, List<AccountDTO>?>? {
@@ -53,7 +53,7 @@ object RestAssuredFacade {
     }
 
     fun getAccount(
-        accountId: String,
+        accountId: UUID,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
     ): AccountDTO? {
@@ -61,7 +61,7 @@ object RestAssuredFacade {
     }
 
     fun postAccountDeposit(
-        accountId: String,
+        accountId: UUID,
         moneyDTO: MoneyDTO,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
@@ -70,7 +70,7 @@ object RestAssuredFacade {
     }
 
     fun postAccountWithdrawal(
-        accountId: String,
+        accountId: UUID,
         moneyDTO: MoneyDTO,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}
@@ -79,8 +79,8 @@ object RestAssuredFacade {
     }
 
     fun postTransfer(
-        fromAccountId: String,
-        toAccountId: String,
+        fromAccountId: UUID,
+        toAccountId: UUID,
         moneyDTO: MoneyDTO,
         expectedStatusCode: Int = 200,
         assert: ValidatableResponse.() -> Unit = {}

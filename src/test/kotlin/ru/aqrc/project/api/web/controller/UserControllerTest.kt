@@ -51,7 +51,7 @@ class UserControllerTest {
     fun `should get user after creation by its id`() {
         val user = postUser(UserDTO(name = USERNAME))!!
 
-        getUser(user.id.toString()) {
+        getUser(user.id!!) {
             body(ID_PATH, equalTo(user.id.toString()))
             body(USERNAME_PATH, equalTo(USERNAME))
         }
@@ -59,9 +59,9 @@ class UserControllerTest {
 
     @Test
     fun `should respond with 404 and message on get user when user not found`() {
-        val unknownUserId = UUID.randomUUID().toString()
+        val unknownUserId = UUID.randomUUID()
         getUser(unknownUserId, 404) {
-            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownUserId))
+            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownUserId.toString()))
         }
     }
 
@@ -69,7 +69,7 @@ class UserControllerTest {
     fun `should create account for user with zeroed amount and return it`() {
         val user = postUser(UserDTO(name = USERNAME))!!
 
-        postUserAccount(user.id.toString()) {
+        postUserAccount(user.id!!) {
             body(ID_PATH, notNullValue())
             body(USER_ID_PATH, equalTo(user.id.toString()))
             body(AMOUNT_PATH, equalTo(BigDecimal.valueOf(0, 8)))
@@ -80,7 +80,7 @@ class UserControllerTest {
     fun `should get empty list of user accounts when they were not created`() {
         val user = postUser(UserDTO(name = USERNAME))!!
 
-        getUserAccounts(user.id.toString()) {
+        getUserAccounts(user.id!!) {
             body(ACCOUNTS_PATH, equalTo(emptyList<AccountDTO>()))
         }
     }
@@ -89,10 +89,10 @@ class UserControllerTest {
     fun `should get list of user accounts when they were created`() {
         val user = postUser(UserDTO(name = USERNAME))!!
 
-        val account1 = postUserAccount(user.id.toString())!!
-        val account2 = postUserAccount(user.id.toString())!!
+        val account1 = postUserAccount(user.id!!)!!
+        val account2 = postUserAccount(user.id!!)!!
 
-        getUserAccounts(user.id.toString()) {
+        getUserAccounts(user.id!!) {
             body("$ACCOUNTS_PATH.$ID_PATH", hasItems(account1.id.toString(), account2.id.toString()))
             body("$ACCOUNTS_PATH.$ID_PATH", hasSize<List<*>>(2))
         }
@@ -100,9 +100,9 @@ class UserControllerTest {
 
     @Test
     fun `should respond with 404 and message on get user accounts when user not found`() {
-        val unknownUserId = UUID.randomUUID().toString()
+        val unknownUserId = UUID.randomUUID()
         getUserAccounts(unknownUserId, 404) {
-            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownUserId))
+            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownUserId.toString()))
         }
     }
 }

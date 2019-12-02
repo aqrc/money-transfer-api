@@ -43,36 +43,36 @@ class AccountControllerTransferTest {
     @BeforeEach
     fun setUp() {
         fromUser = postUser(UserDTO(name = "User From"))!!
-        fromAccount = postUserAccount(fromUser.id.toString())!!
+        fromAccount = postUserAccount(fromUser.id!!)!!
 
         toUser = postUser(UserDTO(name = "User To"))!!
-        toAccount = postUserAccount(toUser.id.toString())!!
+        toAccount = postUserAccount(toUser.id!!)!!
     }
 
     @Test
     fun `should respond with 404 and message when sender's account not found`() {
-        val unknownAccountId = UUID.randomUUID().toString()
+        val unknownAccountId = UUID.randomUUID()
         val money = MoneyDTO(BigDecimal.valueOf(100))
 
-        postTransfer(unknownAccountId, toAccount.id.toString(), money, 404) {
-            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownAccountId))
+        postTransfer(unknownAccountId, toAccount.id, money, 404) {
+            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownAccountId.toString()))
         }
     }
 
     @Test
     fun `should respond with 404 and message when receiver's account not found`() {
-        val unknownAccountId = UUID.randomUUID().toString()
+        val unknownAccountId = UUID.randomUUID()
         val money = MoneyDTO(BigDecimal.valueOf(100))
 
-        postTransfer(fromAccount.id.toString(), unknownAccountId, money, 404) {
-            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownAccountId))
+        postTransfer(fromAccount.id, unknownAccountId, money, 404) {
+            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(unknownAccountId.toString()))
         }
     }
 
     @Test
     fun `should respond with 400 and message on transfer when body has not positive amount`() {
         val assert400WithError = { money: MoneyDTO ->
-            postTransfer(fromAccount.id.toString(), toAccount.id.toString(), money, 400) {
+            postTransfer(fromAccount.id, toAccount.id, money, 400) {
                 body(ERROR_MESSAGE_PATH, containsStringIgnoringCase("positive"))
             }
         }
@@ -87,7 +87,7 @@ class AccountControllerTransferTest {
     @Test
     fun `should respond with 400 and message on transfer when sender doesn't have enough money on account`() {
         val money = MoneyDTO(amount = BigDecimal.valueOf(1000, 8))
-        postTransfer(fromAccount.id.toString(), toAccount.id.toString(), money, 400) {
+        postTransfer(fromAccount.id, toAccount.id, money, 400) {
             body(ERROR_MESSAGE_PATH, containsStringIgnoringCase(fromAccount.id.toString()))
         }
     }
@@ -95,19 +95,19 @@ class AccountControllerTransferTest {
     @Test
     fun `should move money from sender's account to receiver's account`() {
         val deposit = MoneyDTO(amount = BigDecimal.valueOf(1000, 8))
-        postAccountDeposit(fromAccount.id.toString(), deposit) {
+        postAccountDeposit(fromAccount.id, deposit) {
             body(AMOUNT_PATH, equalTo(deposit.amount))
         }
 
-        postTransfer(fromAccount.id.toString(), toAccount.id.toString(), deposit)
+        postTransfer(fromAccount.id, toAccount.id, deposit)
 
-        getAccount(fromAccount.id.toString()) {
+        getAccount(fromAccount.id) {
             body(ID_PATH, equalTo(fromAccount.id.toString()))
             body(USER_ID_PATH, equalTo(fromUser.id.toString()))
             body(AMOUNT_PATH, equalTo(BigDecimal.valueOf(0, 8)))
         }
 
-        getAccount(toAccount.id.toString()) {
+        getAccount(toAccount.id) {
             body(ID_PATH, equalTo(toAccount.id.toString()))
             body(USER_ID_PATH, equalTo(toUser.id.toString()))
             body(AMOUNT_PATH, equalTo(deposit.amount))

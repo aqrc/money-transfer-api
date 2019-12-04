@@ -1,6 +1,5 @@
 package ru.aqrc.project.api.model.repository
 
-import com.sun.javafx.binding.StringFormatter
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.awaitAll
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -115,13 +114,13 @@ class AccountRepository(
 
     private object MoneyTransferSqlUtil {
         fun buildQuery(fromAccountId: UUID, toAccountId: UUID, diff: BigDecimal): String {
-            return StringFormatter.format(
+            return Formatter().format(
                 query,
                 diff.toPlainString(),
                 fromAccountId.toString(),
                 diff.toPlainString(),
                 toAccountId.toString()
-            ).value
+            ).toString()
         }
 
         private const val ID_COLUMN = "ID"

@@ -93,6 +93,18 @@ class AccountControllerTransferTest {
     }
 
     @Test
+    fun `should respond with 400 and message on same accounts in request`() {
+        val deposit = MoneyDTO(amount = BigDecimal.valueOf(1000, 8))
+        postAccountDeposit(fromAccount.id, deposit) {
+            body(AMOUNT_PATH, equalTo(deposit.amount))
+        }
+
+        postTransfer(fromAccount.id, fromAccount.id, deposit, 400) {
+            body(ERROR_MESSAGE_PATH, containsStringIgnoringCase("same"))
+        }
+    }
+
+    @Test
     fun `should move money from sender's account to receiver's account`() {
         val deposit = MoneyDTO(amount = BigDecimal.valueOf(1000, 8))
         postAccountDeposit(fromAccount.id, deposit) {

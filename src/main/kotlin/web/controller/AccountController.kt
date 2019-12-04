@@ -3,6 +3,7 @@ package ru.aqrc.project.api.web.controller
 import io.javalin.http.Context
 import ru.aqrc.project.api.model.Account
 import ru.aqrc.project.api.service.IAccountService
+import ru.aqrc.project.api.service.exception.TransferToTheSameAccount
 import ru.aqrc.project.api.web.controller.extensions.asDTO
 import ru.aqrc.project.api.web.dto.MoneyDTO
 import java.math.BigDecimal
@@ -44,6 +45,9 @@ class AccountController(
     override fun transfer(ctx: Context) {
         val fromAccountId = ctx.getValidatedAccountId("fromId")
         val toAccountId = ctx.getValidatedAccountId("toId")
+
+        if (fromAccountId == toAccountId) throw TransferToTheSameAccount("Can't transfer to the same account")
+
         ctx.getValidatedMoneyDTO()
             .let { money -> accountService.transfer(fromAccountId, toAccountId, money) }
             .let(ctx::json)

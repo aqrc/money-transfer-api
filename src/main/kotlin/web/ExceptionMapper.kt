@@ -6,6 +6,7 @@ import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 import ru.aqrc.project.api.service.exception.EntityNotFoundException
 import ru.aqrc.project.api.service.exception.NotEnoughMoneyOnBalance
+import ru.aqrc.project.api.service.exception.TransferToTheSameAccount
 import ru.aqrc.project.api.web.dto.ErrorResponse
 
 
@@ -26,6 +27,12 @@ object ExceptionMapper {
         }
 
         app.exception(BadRequestResponse::class.java) { exception, ctx ->
+            logger.info("Validation failed: " + exception.message)
+            ctx.json(ErrorResponse(exception.message))
+                .status(HttpStatus.BAD_REQUEST_400)
+        }
+
+        app.exception(TransferToTheSameAccount::class.java) { exception, ctx ->
             logger.info("Validation failed: " + exception.message)
             ctx.json(ErrorResponse(exception.message))
                 .status(HttpStatus.BAD_REQUEST_400)
